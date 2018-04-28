@@ -3,11 +3,11 @@
 
 'use strict';
 
-const recursivePathToTests = 'test/**/*.ts'
-  , srcRecursivePath = '.tmp/drop/visual.js'
-  , srcCssRecursivePath = '.tmp/drop/visual.css'
-  , srcOriginalRecursivePath = 'src/**/*.ts'
-  , coverageFolder = 'coverage';
+const recursivePathToTests = 'test/**/*.ts';
+const srcRecursivePath = '.tmp/drop/visual.js';
+const srcCssRecursivePath = '.tmp/drop/visual.css';
+const srcOriginalRecursivePath = 'src/**/*.ts';
+const coverageFolder = 'coverage';
 
 const coverage_reporters = [
   { type: 'text-summary' },

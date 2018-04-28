@@ -174,8 +174,6 @@ module powerbi.extensibility.visual {
         private viewModel: ChartViewModel = new ChartViewModel();
         private selectionTools: VisualSelectionTools;
         private locale: string;
-        private wasHighlighted: boolean;
-        private wasSelected: boolean;
 
         /**
          * Creates an instance of Visual. Power BI passes parameters descriing the environment to the visual which may
