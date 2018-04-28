@@ -212,8 +212,6 @@ module powerbi.extensibility.visual {
             // Refresh data from the interface/tables
             this.refreshData(this.viewModel, options);
 
-            this.updateState();
-
             // Draw the visual
             this.popPyramidChart(options.viewport.width, options.viewport.height, this.viewModel.dataPoints);
 
@@ -228,25 +226,6 @@ module powerbi.extensibility.visual {
                 // Bind event handlers to the event targets.
                 this.selectionTools.interactivityService.bind(this.viewModel.dataPoints, this.selectionTools, selectionToolsParams);
             }
-        }
-
-        /**
-         * Helper function for identifying state transitions which require synchronising states across visuals
-         *
-         * @memberof Visual
-         */
-        public updateState(): void {
-            // Check status of highlights and selections to drive the state model
-            const isHighlighted: boolean = this.viewModel.isHighlighted;
-            const isSelected: boolean = this.selectionTools.interactivityService.hasSelection();
-
-            // Need to clear selection & filters when we click on another object which filters the selection.
-            if (this.wasSelected && isHighlighted) {
-                this.selectionTools.clearSelection();
-            }
-
-            this.wasHighlighted = isHighlighted;
-            this.wasSelected = isSelected;
         }
 
         /**
@@ -272,15 +251,22 @@ module powerbi.extensibility.visual {
                         },
                         selector: null
                     });
+                case 'dataColumnFilter':
+                    objectEnumeration.push({
+                        objectName: objectName,
+                        properties: {
+                            leftFilter: this.settings.dataPoint.leftFilter,
+                            rightFilter: this.settings.dataPoint.rightFilter
+                        },
+                        selector: null
+                    });
                 case 'axisControl':
                     objectEnumeration.push({
                         objectName: objectName,
                         properties: {
                             percent: this.settings.dataPoint.axisPercent,
-                            leftFilter: this.settings.dataPoint.leftFilter,
                             leftLabel: this.settings.dataPoint.leftLabel,
                             leftBarColor: { solid: { color: this.settings.dataPoint.leftBarColor } },
-                            rightFilter: this.settings.dataPoint.rightFilter,
                             rightLabel: this.settings.dataPoint.rightLabel,
                             rightBarColor: { solid: { color: this.settings.dataPoint.rightBarColor } }
                         },
@@ -324,19 +310,22 @@ module powerbi.extensibility.visual {
 
             const root: DataViewObjects = dataView.metadata.objects;
             const setting: DataPointSettings = visualSettings.dataPoint;
-
             if ('textFormat' in root) {
                 const axisControl: DataViewObject = root['textFormat'];
                 setting.axisFontSize = ('fontSize' in axisControl) ? <number>axisControl['fontSize'] : setting.axisFontSize;
             }
 
+            if ('dataColumnFilter' in root) {
+                const dataViewObject: DataViewObject = root['dataColumnFilter'];
+                setting.leftFilter = ('leftFilter' in dataViewObject) ? <string>dataViewObject['leftFilter'] : setting.leftFilter;
+                setting.rightFilter = ('rightFilter' in dataViewObject) ? <string>dataViewObject['rightFilter'] : setting.rightFilter;
+            }
+
             if ('axisControl' in root) {
                 const axisControl: DataViewObject = root['axisControl'];
                 setting.axisPercent = ('percent' in axisControl) ? <boolean>axisControl['percent'] : setting.axisPercent;
-                setting.leftFilter = ('leftFilter' in axisControl) ? <string>axisControl['leftFilter'] : setting.leftFilter;
                 setting.leftLabel = ('leftLabel' in axisControl) ? <string>axisControl['leftLabel'] : setting.leftLabel;
                 setting.leftBarColor = ('leftBarColor' in axisControl) ? <string>axisControl['leftBarColor']['solid']['color'] : setting.leftBarColor;
-                setting.rightFilter = ('rightFilter' in axisControl) ? <string>axisControl['rightFilter'] : setting.rightFilter;
                 setting.rightLabel = ('rightLabel' in axisControl) ? <string>axisControl['rightLabel'] : setting.rightLabel;
                 setting.rightBarColor = ('rightBarColor' in axisControl) ? <string>axisControl['rightBarColor']['solid']['color'] : setting.rightBarColor;
             }

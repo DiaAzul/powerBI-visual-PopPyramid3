@@ -117,6 +117,26 @@
                 }
             }
         },
+        "dataColumnFilter": {
+            "displayName": "Data Filter",
+            "displayNameKey": "dataColumnFilter",
+            "properties": {
+                "leftFilter": {
+                    "displayName": "Left Filter",
+                    "displayNameKey": "leftFilter",
+                    "type": {
+                        "text": true
+                    }
+                },
+                "rightFilter": {
+                    "displayName": "Right Filter",
+                    "displayNameKey": "rightFilter",
+                    "type": {
+                        "text": true
+                    }
+                }
+            }
+        },
         "axisControl": {
             "displayName": "Axis Format",
             "displayNameKey": "axisFormat",
@@ -125,13 +145,6 @@
                     "displayName": "Percent",
                     "type": {
                         "bool": true
-                    }
-                },
-                "leftFilter": {
-                    "displayName": "Left Filter",
-                    "displayNameKey": "leftFilter",
-                    "type": {
-                        "text": true
                     }
                 },
                 "leftLabel": {
@@ -150,13 +163,6 @@
                                 "color": true
                             }
                         }
-                    }
-                },
-                "rightFilter": {
-                    "displayName": "Right Filter",
-                    "displayNameKey": "rightFilter",
-                    "type": {
-                        "text": true
                     }
                 },
                 "rightLabel": {

@@ -40,5 +40,18 @@ module powerbi.extensibility.visual.test {
 
             });
         });
+
+/*         describe('the update method', () => {
+
+            it('must update the visual without errors', () => {
+
+                //create the visual for testing
+                const visual: Visual = new Visual({element: target, host: host});
+
+                const options: VisualUpdateOptions =
+                visual.update(options);
+
+            });
+        }); */
     });
 }
