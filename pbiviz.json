@@ -4,7 +4,7 @@
     "displayName": "Population Pyramid",
     "guid": "popPyramid30D5C6A8ABAF443C885FE2FEC0F6360BD",
     "visualClassName": "Visual",
-    "version": "1.14.0",
+    "version": "1.16.0",
     "description": "Two sided horizontal bar chart used for displaying population by gender.",
     "supportUrl": "",
     "gitHubUrl": ""

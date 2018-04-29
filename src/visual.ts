@@ -447,12 +447,6 @@ module powerbi.extensibility.visual {
             //#region INITIALISE VISUAL
             const settings: DataPointSettings = this.settings.dataPoint;
 
-            const numberTicks: number = Math.floor(windowWidth / 100 * 8 / this.settings.dataPoint.axisFontSize);
-            const yInnerTick: number = 4;
-            const yOuterTick: number = 0;
-            const xInnerTick: number = 4;
-            const xOuterTick: number = 1;
-
             const chartFontSize: string = settings.axisFontSize.toString().concat('pt');
 
             // Calculate width of category labels
@@ -528,17 +522,31 @@ module powerbi.extensibility.visual {
 
             // the xScale goes from 0 to the width of a region
             //  it will be reversed for the left x-axis
+            const xNumberTicks: number = Math.floor(windowWidth / 100 * 8 / this.settings.dataPoint.axisFontSize);
+            const yInnerTick: number = 4;
+            const yOuterTick: number = 0;
+            const xInnerTick: number = 4;
+            const xOuterTick: number = 1;
 
             const yScale: d3.scale.Ordinal<string, number> = d3.scale.ordinal()
                 .domain(data.map(function (d: DataPoint): string { return d.age; }))
                 .rangeRoundBands([height, 0], 0.1);
 
             // SET UP AXES
+
+            // Vertical axis - note double axis, with labels only attached to left axis.
+
+            // If there are too many lables to be legible filter number of printed labels
+            const characterHeight: number = this.textSize('0', chartFontSize).height;
+            const yModulo: number = Math.ceil(characterHeight * yScale.range().length / height);
+            const yTickFormatter: (d: string, i: number) => boolean = function(d: string, i: number): boolean { return !(i % yModulo); };
+
             const yAxisLeft: d3.svg.Axis = d3.svg.axis()
                 .scale(yScale)
                 .orient('right')
                 .tickSize(yInnerTick, yOuterTick)
-                .tickPadding(margin.middle - 4);
+                .tickPadding(margin.middle - 4)
+                .tickValues(yScale.domain().filter(yTickFormatter));
 
             const yAxisRight: d3.svg.Axis = d3.svg.axis()
                 .scale(yScale)
@@ -558,14 +566,14 @@ module powerbi.extensibility.visual {
                 .orient('bottom')
                 .tickSize(xInnerTick, xOuterTick)
                 .tickFormat(tickFormat)
-                .ticks(numberTicks);
+                .ticks(xNumberTicks);
 
             const xAxisLeft: d3.svg.Axis = d3.svg.axis()
                 .scale(xScale.copy().range([leftInnerMargin, margin.left]))
                 .orient('bottom')
                 .tickSize(xInnerTick, xOuterTick)
                 .tickFormat(tickFormat)
-                .ticks(numberTicks);
+                .ticks(xNumberTicks);
             // REVERSE THE X-AXIS SCALE ON THE LEFT SIDE BY REVERSING THE RANGE
 
             // MAKE GROUPS FOR EACH SIDE OF CHART
