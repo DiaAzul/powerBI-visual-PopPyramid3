@@ -491,10 +491,67 @@ module powerbi.extensibility.visual {
             //#endregion
 
             //#region CREATE LEFT AND RIGHT DATA
+            let dataLeft: DataPoint[] = data.filter(function (d: DataPoint): boolean { return (d.gender === settings.leftFilter); });
+            let dataRight: DataPoint[] = data.filter(function (d: DataPoint): boolean { return (d.gender === settings.rightFilter); });
+            //#endregion
 
-            const dataLeft: DataPoint[] = data.filter(function (d: DataPoint): boolean { return (d.gender === settings.leftFilter); });
-            const dataRight: DataPoint[] = data.filter(function (d: DataPoint): boolean { return (d.gender === settings.rightFilter); });
+            //#region MERGE DATA LABELS FROM RIGHT AND LEFT AXIS TO PREVENT OUT OF ORDER DISPLAY
+            //Ensure we have proper sort on data points
+            const hashTableLeft: string[] = [];
+            const uniqueAgesLeft: DataPoint[] = dataLeft.filter(function (item: DataPoint): boolean {
+                return hashTableLeft.hasOwnProperty(item.age) ? false : hashTableLeft[item.age] = true; // : (uniqueAgesLeft[item.age] = true);
+            });
 
+            const hashTableRight: string[] = [];
+            const uniqueAgesRight: DataPoint[] = dataRight.filter(function (item: DataPoint): boolean {
+                return hashTableRight.hasOwnProperty(item.age) ? false : hashTableRight[item.age] = true;
+            });
+            const consolidatedAxisLabels: string[] = [];
+
+            // tslint:disable cyclomatic-complexity
+            while ((uniqueAgesLeft.length > 0) || (uniqueAgesRight.length > 0)) {
+                if (uniqueAgesRight.length === 0 || !hashTableRight.hasOwnProperty(uniqueAgesLeft[0].age)) {
+                    consolidatedAxisLabels.push(uniqueAgesLeft[0].age);
+                    uniqueAgesLeft.splice(0, 1);
+                    continue;
+                }
+                if (uniqueAgesLeft.length === 0 || !hashTableLeft.hasOwnProperty(uniqueAgesRight[0].age)) {
+                    consolidatedAxisLabels.push(uniqueAgesRight[0].age);
+                    uniqueAgesRight.splice(0, 1);
+                    continue;
+                }
+                if (uniqueAgesLeft[0].age === uniqueAgesRight[0].age) {
+                    consolidatedAxisLabels.push(uniqueAgesLeft[0].age);
+                    uniqueAgesLeft.splice(0, 1);
+                    uniqueAgesRight.splice(0, 1);
+                    continue;
+                }
+                if (hashTableLeft.hasOwnProperty(uniqueAgesLeft[0].age) && hashTableRight.hasOwnProperty(uniqueAgesLeft[0].age)) {
+                    consolidatedAxisLabels.push(uniqueAgesLeft[0].age);
+                    uniqueAgesRight.splice(uniqueAgesRight.indexOf(uniqueAgesLeft[0]), 1);
+                    uniqueAgesLeft.splice(0, 1);
+                    continue;
+                }
+                if (hashTableRight.hasOwnProperty(uniqueAgesRight[0].age) && hashTableLeft.hasOwnProperty(uniqueAgesRight[0].age)) {
+                    consolidatedAxisLabels.push(uniqueAgesRight[0].age);
+                    uniqueAgesLeft.splice(uniqueAgesLeft.indexOf(uniqueAgesRight[0]), 1);
+                    uniqueAgesRight.splice(0, 1);
+                    continue;
+                }
+            }
+
+            const sortedData: DataPoint[] = [];
+
+            consolidatedAxisLabels.forEach(function(item: string): void {
+                    const filteredData: DataPoint[] = data.filter(function(dp: DataPoint): boolean {return dp.age === item ? true : false; });
+                    filteredData.forEach(function(dp: DataPoint): void {
+                        sortedData.push(dp);
+                    });
+                });
+
+            data = sortedData;
+            dataLeft = data.filter(function (d: DataPoint): boolean { return (d.gender === settings.leftFilter); });
+            dataRight = data.filter(function (d: DataPoint): boolean { return (d.gender === settings.rightFilter); });
             //#endregion
 
             //#region GET THE TOTAL POPULATION SIZE AND CREATE A FUNCTION FOR RETURNING THE PERCENTAGE
@@ -528,6 +585,9 @@ module powerbi.extensibility.visual {
             const xInnerTick: number = 4;
             const xOuterTick: number = 1;
 
+            // TODO The ordering of data causes problems when all gender values are grouped together
+            // e.g. if all male values are grouped before female and there is one less age band in female then that age band is out of order
+            // at the top of the chart (last value). Need to find a way to order values on two-axis charts correctly.
             const yScale: d3.scale.Ordinal<string, number> = d3.scale.ordinal()
                 .domain(data.map(function (d: DataPoint): string { return d.age; }))
                 .rangeRoundBands([height, 0], 0.1);
@@ -539,7 +599,7 @@ module powerbi.extensibility.visual {
             // If there are too many lables to be legible filter number of printed labels
             const characterHeight: number = this.textSize('0', chartFontSize).height;
             const yModulo: number = Math.ceil(characterHeight * yScale.range().length / height);
-            const yTickFormatter: (d: string, i: number) => boolean = function(d: string, i: number): boolean { return !(i % yModulo); };
+            const yTickFormatter: (d: string, i: number) => boolean = function (d: string, i: number): boolean { return !(i % yModulo); };
 
             const yAxisLeft: d3.svg.Axis = d3.svg.axis()
                 .scale(yScale)
