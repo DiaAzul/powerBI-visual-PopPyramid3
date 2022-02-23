@@ -1,8 +1,9 @@
 # Sample data for population pyramid
 
-The sample data is provided to illustrate the use of the visual in PowerBI desktop.
+Sample data is provided to demonstrate how to use the data in PowerBI desktop and
+confirm that the visual is working.
 
-The data is provided as a table within the Microsoft Excel workbook as a table.
+The sample data is included as a table within the Microsoft Excel workbook.
 It is loaded into PowerBI using Get data.
 
 ![Get data dialogue](PowerBI_get_data.png)
